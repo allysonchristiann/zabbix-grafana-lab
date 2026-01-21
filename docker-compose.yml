@@ -1,0 +1,111 @@
+services:
+  zabbix-db:
+    image: mariadb:11
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+    volumes:
+      - zabbix_db:/var/lib/mysql
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:alpine-7.0.20
+    restart: always
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+    ports:
+      - "10051:10051"
+    depends_on:
+      - zabbix-db
+
+  zabbix-proxy:
+    image: zabbix/zabbix-proxy-mysql:alpine-7.0.20
+    restart: always
+    environment:
+      ZBX_HOSTNAME: proxy-lab-local
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix_proxy
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-server
+      - zabbix-db
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:alpine-7.0.20
+    restart: always
+    environment:
+      ZBX_HOSTNAME: agent-lab-local
+      ZBX_SERVER_HOST: zabbix-proxy
+      ZBX_SERVER_PORT: 10051
+      ZBX_SERVER_ACTIVE: zabbix-proxy
+    depends_on:
+      - zabbix-proxy
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-7.0.20
+    restart: always
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: America/Sao_Paulo
+    ports:
+      - "8080:8080"
+    depends_on:
+      - zabbix-server
+      - zabbix-db
+
+  postgres-lab:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: zbx_monitor
+      POSTGRES_PASSWORD: zabbix123
+    ports:
+      - "5432:5432"
+
+  mysql-lab:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: appdb_mysql
+      MYSQL_USER: zbx_monitor
+      MYSQL_PASSWORD: zabbix123
+    ports:
+      - "3307:3306"
+
+  tomcat-lab:
+    image: tomcat:9
+    restart: always
+    ports:
+      - "8081:8080"
+
+  grafana:
+    image: grafana/grafana:9.5.15
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: alexanderzobnin-zabbix-app
+      GF_FEATURE_TOGGLES_DISABLE: newConnections
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
+    depends_on:
+      - zabbix-web
+
+volumes:
+  zabbix_db:
+  grafana_data:

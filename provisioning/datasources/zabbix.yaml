@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: Zabbix-Lab
+    type: alexanderzobnin-zabbix-datasource
+    access: proxy
+    url: http://zabbix-web:8080/api_jsonrpc.php
+    isDefault: false
+    editable: true
+
+    jsonData:
+      timeout: 30
+      trends: true
+      cacheTTL: 60
+      useZabbixValueMapping: true
+      useZabbixProblems: true
+
+    secureJsonData:
+      apiToken: 5caa098a927ef7e1f8ec9ef81327b6283bf70e81bc32d96bac3b8e53c585ed5f
