@@ -28,6 +28,7 @@ services:
     environment:
       ZBX_HOSTNAME: proxy-lab-local
       DB_SERVER_HOST: zabbix-db
+      DB_SERVER_PORT: 3306
       MYSQL_DATABASE: zabbix_proxy
       MYSQL_USER: zabbix
       MYSQL_PASSWORD: zabbix
@@ -58,20 +59,10 @@ services:
       ZBX_SERVER_HOST: zabbix-server
       PHP_TZ: America/Sao_Paulo
     ports:
-      - "8080:8080"
+      - "8086:8080"
     depends_on:
       - zabbix-server
       - zabbix-db
-
-  postgres-lab:
-    image: postgres:16
-    restart: always
-    environment:
-      POSTGRES_DB: appdb
-      POSTGRES_USER: zbx_monitor
-      POSTGRES_PASSWORD: zabbix123
-    ports:
-      - "5432:5432"
 
   mysql-lab:
     image: mysql:8.0
@@ -88,13 +79,13 @@ services:
     image: tomcat:9
     restart: always
     ports:
-      - "8081:8080"
+      - "8085:8080"
 
   grafana:
     image: grafana/grafana:9.5.15
     restart: always
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -109,3 +100,4 @@ services:
 volumes:
   zabbix_db:
   grafana_data:
+
